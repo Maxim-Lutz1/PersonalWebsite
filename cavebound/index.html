@@ -1,0 +1,148 @@
+
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cavebound - Version History</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+
+    <header class="site-header">
+        <a href="/" class="logo">MOSS<span>BUCKET</span></a>
+
+        <nav class="main-nav">
+            <a href="/">Home</a>
+            <a href="https://moss-bucket.itch.io/cavebound"
+               target="_blank"
+               rel="noopener noreferrer">itch.io</a>
+        </nav>
+    </header>
+
+    <main>
+
+        <section class="hero">
+            <p class="eyebrow">MOSS BUCKET / GAME RELEASES</p>
+
+            <h1>Cavebound<span>.</span></h1>
+
+            <p class="hero-description">
+                Choose a version of Cavebound and start playing.
+                All available releases are listed below.
+            </p>
+
+            <a class="text-link"
+               href="https://moss-bucket.itch.io/cavebound"
+               target="_blank"
+               rel="noopener noreferrer">
+                View on itch.io
+            </a>
+        </section>
+
+        <section class="section">
+
+            <div class="section-heading">
+                <div>
+                    <p class="eyebrow">RELEASE ARCHIVE</p>
+                    <h2>Version History</h2>
+                </div>
+            </div>
+
+            <div id="versions">
+                <div class="project-entry">
+                    <p>Loading versions...</p>
+                </div>
+            </div>
+
+        </section>
+
+    </main>
+
+    <footer class="site-footer">
+        <p>© Moss Bucket</p>
+        <p class="footer-note">GAMES & TECHNOLOGY</p>
+    </footer>
+
+    <script>
+        async function loadVersions() {
+            const list = document.getElementById("versions");
+
+            try {
+                const response = await fetch(
+                    "/cavebound/_listing/?t=" + Date.now(),
+                    { cache: "no-store" }
+                );
+
+                if (!response.ok) {
+                    throw new Error("Server error: " + response.status);
+                }
+
+                const html = await response.text();
+
+                const documentListing = new DOMParser().parseFromString(
+                    html,
+                    "text/html"
+                );
+
+                const versions = [...documentListing.querySelectorAll("a")]
+                    .map(link => link.textContent.trim().replace(/\/$/, ""))
+                    .filter(name => /^v\d+\.\d+\.\d+$/.test(name))
+                    .sort((a, b) =>
+                        b.localeCompare(a, undefined, { numeric: true })
+                    );
+
+                list.replaceChildren();
+
+                if (versions.length === 0) {
+                    list.textContent = "No versions available.";
+                    return;
+                }
+
+                for (const version of versions) {
+                    const entry = document.createElement("article");
+                    entry.className = "project-entry";
+
+                    const info = document.createElement("div");
+
+                    const category = document.createElement("p");
+                    category.className = "project-category";
+                    category.textContent = "CAVEBOUND / RELEASE";
+
+                    const heading = document.createElement("h2");
+                    const link = document.createElement("a");
+
+                    link.href = "/cavebound/" + version + "/";
+                    link.textContent = version;
+
+                    heading.appendChild(link);
+
+                    const description = document.createElement("p");
+                    description.textContent = "Play this version of Cavebound.";
+
+                    info.appendChild(category);
+                    info.appendChild(heading);
+                    info.appendChild(description);
+
+                    const playLink = document.createElement("a");
+                    playLink.className = "text-link";
+                    playLink.href = "/cavebound/" + version + "/";
+                    playLink.textContent = "Play version";
+
+                    entry.appendChild(info);
+                    entry.appendChild(playLink);
+
+                    list.appendChild(entry);
+                }
+
+            } catch (error) {
+                list.textContent = "Could not load versions.";
+                console.error(error);
+            }
+        }
+
+        loadVersions();
+    </script>
+
+</body>
+</html>
